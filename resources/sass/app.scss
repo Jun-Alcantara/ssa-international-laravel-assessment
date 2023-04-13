@@ -6,3 +6,15 @@
 
 // Bootstrap
 @import 'bootstrap/scss/bootstrap';
+
+.cursor-pointer { cursor: pointer; }
+
+.list-avatar {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+}
+
+.profile-avatar {
+  width: 200px;
+}

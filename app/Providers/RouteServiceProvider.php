@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Exception;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/home';
+    public const HOME = '/users';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -25,6 +26,14 @@ class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+
+        Route::macro('softDeletes', function (String $resourceName, String $controller) {
+            $prefix = strtolower($resourceName);
+
+            Route::get("{$prefix}/trashed", [$controller, 'trashed'])->name("{$prefix}.trashed");
+            Route::patch("{$prefix}/{record}/restore", [$controller, 'restore'])->name("{$prefix}.restore");
+            Route::delete("{$prefix}/{record}/delete", [$controller, 'delete'])->name("{$prefix}.delete");
+        });
 
         $this->routes(function () {
             Route::middleware('api')
