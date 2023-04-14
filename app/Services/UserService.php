@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Detail;
 use App\Models\User;
 
 class UserService implements UserServiceInterface
@@ -224,5 +225,42 @@ class UserService implements UserServiceInterface
         $file->storeAs('public', $path);
 
         return $path;
+    }
+
+    public function storeUserDetails(User $user)
+    {
+        $details['fullname'] = [
+            'key' => 'Full name',
+            'value' => $user->fullname,
+            'user_id' => $user->id,
+        ];
+
+        $details['middleinitial'] = [
+            'key' => 'Middle Initial',
+            'value' => $user->middleinitial,
+            'user_id' => $user->id,
+        ];
+
+        $details['avatar'] = [
+            'key' => 'Avatar',
+            'value' => $user->avatar,
+            'user_id' => $user->id,
+        ];
+
+        $details['gender'] = [
+            'key' => 'Gender',
+            'value' => $user->prefiname == "Mr." ? 'Male' : 'Female',
+            'type' => 'bio',
+            'user_id' => $user->id,
+        ];
+
+        foreach ($details as $detail) {
+            Detail::create([
+                'key' => $detail['key'],
+                'value' => $detail['value'],
+                'type' => $detail['type'] ?? null,
+                'user_id' => $detail['user_id']
+            ]);
+        }
     }
 }

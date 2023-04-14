@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Detail;
+use App\Events\UserSaved;
 
 class User extends Authenticatable
 {
@@ -51,6 +53,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($user) {
+            event(new UserSaved($user));
+        });
+    }
+
     public function getAvatarAttribute()
     {
         return photo_cdn($this->photo)
@@ -66,5 +77,10 @@ class User extends Authenticatable
     {
         $middleinitial = substr($this->middlename, 1, 1);
         return strtoupper($middleinitial) . ".";
+    }
+
+    public function details()
+    {
+        return $this->hasMany(Detail::class);
     }
 }
