@@ -22,13 +22,13 @@ class UserFactory extends Factory
         $photoUrl = "https://ui-avatars.com/api/?name={$firstname}+{$lastname}";
 
         return [
-            'prefixname' => collect(['MR', 'MRS', 'MS', NULL])->random(),
+            'prefixname' => collect(['Mr.', 'Mrs.', 'Ms'])->random(),
             'firstname' => $firstname,
-            'middlename' => $lastname,
-            'lastname' => fake()->lastName(),
+            'middlename' => fake()->lastName(),
+            'lastname' => $lastname,
             'suffixname' => collect(['JR', 'SR', NULL])->random(),
-            'username' => "{$firstname}{$lastname}",
-            'email' => "{$firstname}{$lastname}@example.com",
+            'username' => strtolower("{$firstname}{$lastname}"),
+            'email' => strtolower("{$firstname}{$lastname}@example.com"),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'photo' => $photoUrl,
             'type' => 'user',
