@@ -100,6 +100,16 @@
             </div>
         @endif
 
+        @if(session()->has('dangerNotification'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="container d-flex justify-content-between">
+                    <span>
+                        {{ session()->get('dangerNotification') }}
+                    </span>
+                </div>
+            </div>
+        @endif
+
         <main class="py-4">
             @yield('content')
         </main>

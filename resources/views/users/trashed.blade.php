@@ -95,16 +95,19 @@
             if (result.isConfirmed) {
               const deleteForm = document.createElement('form')
               deleteForm.method = "POST"
+              deleteForm.type = "hidden"
               deleteForm.action = `${deleteaction}`
 
               const methodField = document.createElement('input');
               methodField.name = "_method"
+              methodField.type = "hidden"
               methodField.value = "DELETE"
 
               deleteForm.appendChild(methodField)
 
               const csrfField = document.createElement('input');
               csrfField.name = "_token"
+              csrfField.type = "hidden"
               csrfField.value = "{{ csrf_token() }}"
 
               deleteForm.appendChild(csrfField)
@@ -142,12 +145,14 @@
 
               const restoreMethodField = document.createElement('input');
               restoreMethodField.name = "_method"
+              restoreMethodField.type = "hidden"
               restoreMethodField.value = "PATCH"
 
               restoreForm.appendChild(restoreMethodField)
 
               const restoreCsrfField = document.createElement('input');
               restoreCsrfField.name = "_token"
+              restoreCsrfField.type = "hidden"
               restoreCsrfField.value = "{{ csrf_token() }}"
 
               restoreForm.appendChild(restoreCsrfField)

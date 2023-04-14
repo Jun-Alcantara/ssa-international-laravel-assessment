@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\UserRequest;
+use App\Services\UserService;
 use App\Models\User;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(UserService $userService)
     {
-        $users = User::paginate(10);
-        return view('users.index', compact('users'));
+        return view('users.index', [
+            'users' => $userService->list()
+        ]);
     }
 
     /**
@@ -28,42 +30,17 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request, UserService $userService)
     {
-        $validated = $request->validate([
-            "prefixname" => "string|nullable",
-            "firstname" => "required",
-            "middlename" => "string|nullable",
-            "lastname" => "required",
-            "sufixname" => "string|nullable",
-            "username" => "required|max:255|unique:users",
-            "email_address" => "required|email|max:255|unique:users,email",
-            "password" => "required|confirmed",
-            "photo" => "max:10240",
-        ]);
+        $validated = $request->validated();
 
         $photo = null;
         if ($request->has('photo')) {
-            $photoFile = $validated['photo'];
-            $photoExt = $photoFile->getClientOriginalExtension();
-            $uniqueFilename = Str::random(60);
-            $directory = 'public/avatars';
-
-            $photo = $validated['photo']->storeAs($directory . '/' . $uniqueFilename . '.' . $photoExt);
+            $photo = $userService->upload($validated['photo']);
         }
 
-        $user = User::create([
-            'prefixname' => $validated['prefixname'],
-            'firstname' => $validated['firstname'],
-            'middlename' => $validated['middlename'],
-            'lastname' => $validated['lastname'],
-            'suffixname' => $validated['sufixname'],
-            'username' => $validated['username'],
-            'email' => $validated['email_address'],
-            'password' => $validated['password'],
-            'photo' => $photo,
-            'type' => 'user'
-        ]);
+        $validated['photo'] = $photo;
+        $user = $userService->store($validated);
 
         return redirect()
             ->route('users.show', $user)
@@ -89,40 +66,23 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UserRequest $request, User $user, UserService $userService)
     {
-        $validated = $request->validate([
-            "prefixname" => "string|nullable",
-            "firstname" => "required",
-            "middlename" => "string|nullable",
-            "lastname" => "required",
-            "sufixname" => "string|nullable",
-            "username" => ['required', 'max:255', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)], //"required|max:255|unique:users,{$user->id}",
-            "email_address" => ['required', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)], //"required|email|max:255|unique:users,email,{$user->id}",
-            "photo" => "max:10240",
-        ]);
+        $validated = $request->validated();
 
-        $photo = $user->photo;
-        if ($request->has('photo')) {
-            $photoFile = $validated['photo'];
-            $photoExt = $photoFile->getClientOriginalExtension();
-            $uniqueFilename = Str::random(60);
-            $directory = 'public/avatars';
-
-            $photo = $validated['photo']->storeAs($directory . '/' . $uniqueFilename . '.' . $photoExt);
+        if (!Hash::check($validated['old_password'], $request->user()->password)) {
+            return back()
+                ->withInput()
+                ->with('dangerNotification', 'Please enter your correct old password to update your password');
         }
 
-        $user->update([
-            'prefixname' => $validated['prefixname'],
-            'firstname' => $validated['firstname'],
-            'middlename' => $validated['middlename'],
-            'lastname' => $validated['lastname'],
-            'suffixname' => $validated['sufixname'],
-            'username' => $validated['username'],
-            'email' => $validated['email_address'],
-            'photo' => $photo,
-            'type' => 'user'
-        ]);
+        $photo = null;
+        if ($request->has('photo')) {
+            $photo = $userService->upload($validated['photo']);
+        }
+
+        $validated['photo'] = $photo;
+        $user = $userService->update($user->id, $validated);
 
         return back()
             ->with('successNotification', 'A user is updated!');
@@ -131,9 +91,9 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(User $user, UserService $userService)
     {
-        $user->delete();
+        $userService->deactivate($user->id);
 
         return redirect()
             ->route('users.index')
@@ -143,22 +103,19 @@ class UserController extends Controller
     /**
      * Display all trashed users
      */
-    public function trashed()
+    public function trashed(UserService $userService)
     {
-        $users = User::onlyTrashed()
-            ->paginate(10);
-
-        return view('users.trashed', compact('users'));
+        return view('users.trashed', [
+            'users' => $userService->listTrashed()
+        ]);
     }
 
     /**
      * Delete user's record permanently
      */
-    public function delete($record)
+    public function delete($record, UserService $userService)
     {
-        User::onlyTrashed()
-            ->findOrFail($record)
-            ->forceDelete();
+        $userService->delete($record);
 
         return redirect()
             ->route('users.trashed')
@@ -168,11 +125,9 @@ class UserController extends Controller
     /**
      * Restore a soft deleted user
      */
-    public function restore($record)
+    public function restore($record, UserService $userService)
     {
-        User::onlyTrashed()
-            ->findOrFail($record)
-            ->restore();
+        $userService->restore($record);
 
         return redirect()
             ->route('users.trashed')

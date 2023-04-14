@@ -85,12 +85,12 @@
             <div class="form-floating mb-3">
               <input type="text"
                 class="form-control"
-                id="sufixname"
-                name="sufixname"
+                id="suffixname"
+                name="suffixname"
                 placeholder="Suffix Name"
-                value="{{ old('sufixname', $user->suffixname) }}"
+                value="{{ old('suffixname', $user->suffixname) }}"
               >
-              <label for="sufixname">Suffix Name:</label>
+              <label for="suffixname">Suffix Name:</label>
             </div>
 
             <div class="form-floating mb-3">
@@ -113,18 +113,18 @@
 
             <div class="form-floating mb-3">
               <input type="email"
-                id="email_address"
-                class="form-control {{ $errors->has('email_address') ? 'is-invalid' : '' }}"
-                name="email_address"
+                id="email"
+                class="form-control {{ $errors->has('email') ? 'is-invalid' : '' }}"
+                name="email"
                 placeholder="name@example.com"
-                value="{{ old('email_address', $user->email) }}"
+                value="{{ old('email', $user->email) }}"
               >
-              <label for="email_address">
+              <label for="email">
                 Email address: <span class="text-danger">*</span>
               </label>
-              @if($errors->has('email_address'))
-                <div id="email_address-invalid-feedback" class="invalid-feedback">
-                  {{ $errors->first('email_address') }}
+              @if($errors->has('email'))
+                <div id="email-invalid-feedback" class="invalid-feedback">
+                  {{ $errors->first('email') }}
                 </div>
               @endif
             </div>
